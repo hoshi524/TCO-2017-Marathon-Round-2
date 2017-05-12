@@ -1,16 +1,15 @@
-import java.io.*;
-import java.lang.reflect.Array;
-import java.security.*;
-import java.util.*;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class AbstractWars {
 
     XorShift random = new XorShift();
     Base[] bases;
-    int speed, turn = 0;
+    int speed, turn;
 
-    public int init(int[] baseLocations, int speed) {
+    public int init(int[] baseLocations, int speed_) {
         bases = new Base[baseLocations.length / 2];
         for (int i = 0; i < bases.length; ++i) {
             Base b = new Base();
@@ -18,17 +17,18 @@ public class AbstractWars {
             b.y = baseLocations[2 * i + 1];
             bases[i] = b;
         }
-        this.speed = speed;
+        turn = 0;
+        speed = speed_;
         return 0;
     }
 
-    List<Integer> others;
+    List<Base> others;
 
-    public int getRandomBase(int sourceInd) {
+    public Base getRandomBase(Base source) {
         double[] probs = new double[others.size()];
         double sp = 0;
         for (int i = 0; i < others.size(); ++i) {
-            probs[i] = 1 / distance(bases[sourceInd], bases[others.get(i)]);
+            probs[i] = 1 / distance(source, others.get(i));
             sp += probs[i];
         }
 
@@ -42,26 +42,29 @@ public class AbstractWars {
         return others.get(others.size() - 1);
     }
 
-    int[] sendTroops(int[] bases, int[] troops) {
+    int[] sendTroops(int[] bases_, int[] troops_) {
+        for (int i = 0; i < this.bases.length; ++i) {
+            bases[i].id = i;
+            if (turn == 1) bases[i].growth = bases_[2 * i + 1] - bases[i].troops;
+            bases[i].owner = bases_[2 * i];
+            bases[i].troops = bases_[2 * i + 1];
+        }
         ++turn;
-        others = new ArrayList<>();
-        for (int i = 0; i < this.bases.length; ++i)
-            if (bases[2 * i] != 0) others.add(i);
+        others = Stream.of(bases).filter(x -> x.owner != 0).collect(Collectors.toList());
         if (others.size() == 0) return new int[0];
 
         int ret[] = new int[this.bases.length * 2], rets = 0;
         for (int i = 0; i < this.bases.length; ++i) {
-            if (bases[2 * i] == 0 && bases[2 * i + 1] > 1000 * 2 / 3) {
+            if (bases[i].owner == 0 && bases[i].troops > 1000 * 2 / 3) {
                 ret[rets++] = i;
-                ret[rets++] = getRandomBase(i);
+                ret[rets++] = getRandomBase(bases[i]).id;
             }
         }
         return Arrays.copyOf(ret, rets);
     }
 
     class Base {
-        int x, y;
-        int growth = 1;
+        int id, x, y, owner, troops, growth;
     }
 
     double distance(Base a, Base b) {
