@@ -1,5 +1,3 @@
-.vscode/
+.idea/
 out/
-*.out
-*.s
-log
+*.iml

@@ -78,8 +78,8 @@ class TestCase {
         for (int i = 0; i < B; i++) {
             int bx, by;
             while (true) {
-                bx = rnd.nextInt(S-2)+1;
-                by = rnd.nextInt(S-2)+1;
+                bx = rnd.nextInt(S - 2) + 1;
+                by = rnd.nextInt(S - 2) + 1;
                 Integer loc = new Integer(S * bx + by);
                 if (locations.contains(loc))
                     continue;
@@ -133,58 +133,57 @@ class Drawer extends JFrame {
         int[] colors = {0x000000, 0x0080FE, 0xFE0080, 0xFE8000, 0x00FE80};
         return colors[owner];
     }
-    
+
     class DrawerPanel extends JPanel {
         public void paint(Graphics g) {
-          synchronized (world.worldLock) {
-            Graphics2D g2 = (Graphics2D)g;
-            g.setColor(new Color(0xA0A0A0));
-            g.fillRect(15, 15, S + 1, S + 1);
+            synchronized (world.worldLock) {
+                Graphics2D g2 = (Graphics2D) g;
+                g.setColor(new Color(0xA0A0A0));
+                g.fillRect(15, 15, S + 1, S + 1);
 
-            // draw bases
-            g.setFont(new Font("Arial", Font.PLAIN, 11));
-            for (int b=0; b<world.tc.B; b++) {
-                int c = getOwnerColor(world.tc.bases[b].owner);
-                g.setColor(new Color(c));
-                int x = world.tc.bases[b].x;
-                int y = world.tc.bases[b].y;
-                g.fillRect(15 + x - 3, 15 + y - 3, 7, 7);
-                g.setColor(new Color(c / 2));
-                g.drawRect(15 + x - 3, 15 + y - 3, 7, 7);
-                g2.drawString(""+world.tc.bases[b].size, 15 + x + 1, 15 + y);
+                // draw bases
+                g.setFont(new Font("Arial", Font.PLAIN, 11));
+                for (int b = 0; b < world.tc.B; b++) {
+                    int c = getOwnerColor(world.tc.bases[b].owner);
+                    g.setColor(new Color(c));
+                    int x = world.tc.bases[b].x;
+                    int y = world.tc.bases[b].y;
+                    g.fillRect(15 + x - 3, 15 + y - 3, 7, 7);
+                    g.setColor(new Color(c / 2));
+                    g.drawRect(15 + x - 3, 15 + y - 3, 7, 7);
+                    g2.drawString("" + world.tc.bases[b].size, 15 + x + 1, 15 + y);
+                }
+
+                // draw troops
+                g.setFont(new Font("Arial", Font.PLAIN, 10));
+                for (Troop t : world.troops) {
+                    int c = getOwnerColor(t.owner);
+                    g.setColor(new Color(c));
+                    g.fillOval(15 + t.x - 3, 15 + t.y - 3, 7, 7);
+                    g.setColor(new Color(c / 2));
+                    g2.drawString("" + t.size, 15 + t.x + 1, 15 + t.y);
+                }
+
+                g.setFont(new Font("Arial", Font.BOLD, 12));
+                g.setColor(Color.BLACK);
+
+                int horPos = 40 + S;
+
+                g2.drawString("Speed = " + world.tc.speed, horPos, 30);
+                g2.drawString("Simulation step = " + world.curStep, horPos, 50);
+                g2.drawString(String.format("Score = %.4f", world.playerScore), horPos, 70);
+
+                // output shares of active players using their respective colors
+                for (int i = 0; i <= world.tc.NOpp; ++i) {
+                    g2.setColor(new Color(getOwnerColor(i)));
+                    g2.drawString(String.format("#" + i + " (power %.2f) share %.4f", world.tc.powers[i], world.playersUnits[i] * 1.0 / world.totalUnits), horPos, 90 + 20 * i);
+                }
             }
-
-            // draw troops
-            g.setFont(new Font("Arial", Font.PLAIN, 10));
-            for (Troop t : world.troops) {
-                int c = getOwnerColor(t.owner);
-                g.setColor(new Color(c));
-                g.fillOval(15 + t.x - 3, 15 + t.y - 3, 7, 7);
-                g.setColor(new Color(c / 2));
-                g2.drawString(""+t.size, 15 + t.x + 1, 15 + t.y);
-            }
-
-            g.setFont(new Font("Arial", Font.BOLD, 12));
-            g.setColor(Color.BLACK);
-
-            int horPos = 40 + S;
-
-            g2.drawString("Speed = " + world.tc.speed, horPos, 30);
-            g2.drawString("Simulation step = " + world.curStep, horPos, 50);
-            g2.drawString(String.format("Score = %.4f", world.playerScore), horPos, 70);
-
-            // output shares of active players using their respective colors
-            for (int i = 0; i <= world.tc.NOpp; ++i) {
-                g2.setColor(new Color(getOwnerColor(i)));
-                g2.drawString(String.format("#" + i + " (power %.2f) share %.4f", world.tc.powers[i], world.playersUnits[i] * 1.0 / world.totalUnits), horPos, 90 + 20 * i);
-            }
-          }
         }
     }
 
     class DrawerWindowListener extends WindowAdapter {
         public void windowClosing(WindowEvent event) {
-            AbstractWarsVis.stopSolution();
             System.exit(0);
         }
     }
@@ -268,96 +267,96 @@ class World {
     }
 
     void updateTroopDepartures(int owner, int[] attacks) {
-      synchronized (worldLock) {
-        String warnPrefix = "WARNING: time step = " + curStep + ". ";
-        // run through attacks, ignoring invalid ones (but print warning if user's one is invalid)
-        for (int i = 0; i < attacks.length / 2; ++i) {
-            int from = attacks[2*i];
-            int to = attacks[2*i+1];
-            if (from < 0 || from >= tc.B || to < 0 || to >= tc.B) {
-                if (owner == 0) {
-                    System.err.println(warnPrefix + "Invalid base index in troop sending attempt " + i + ", ignoring.");
+        synchronized (worldLock) {
+            String warnPrefix = "WARNING: time step = " + curStep + ". ";
+            // run through attacks, ignoring invalid ones (but print warning if user's one is invalid)
+            for (int i = 0; i < attacks.length / 2; ++i) {
+                int from = attacks[2 * i];
+                int to = attacks[2 * i + 1];
+                if (from < 0 || from >= tc.B || to < 0 || to >= tc.B) {
+                    if (owner == 0) {
+                        System.err.println(warnPrefix + "Invalid base index in troop sending attempt " + i + ", ignoring.");
+                    }
+                    continue;
                 }
-                continue;
-            }
-            if (tc.bases[from].owner != owner) {
-                if (owner == 0) {
-                    System.err.println(warnPrefix + "Base not owned by you in troop sending attempt " + i + ", ignoring.");
+                if (tc.bases[from].owner != owner) {
+                    if (owner == 0) {
+                        System.err.println(warnPrefix + "Base not owned by you in troop sending attempt " + i + ", ignoring.");
+                    }
+                    continue;
                 }
-                continue;
-            }
-            if (from == to) {
-                if (owner == 0) {
-                    System.err.println(warnPrefix + "Sending troop from the base to itself in troop sending attempt " + i + ", ignoring.");
+                if (from == to) {
+                    if (owner == 0) {
+                        System.err.println(warnPrefix + "Sending troop from the base to itself in troop sending attempt " + i + ", ignoring.");
+                    }
+                    continue;
                 }
-                continue;
-            }
-            // don't check ownership of the target base, it can be both attack and reinforcement
-            if (tc.bases[from].size < 2) {
-                if (owner == 0) {
-                    System.err.println(warnPrefix + "Source base has less than 2 units in troop sending attempt " + i + ", ignoring.");
+                // don't check ownership of the target base, it can be both attack and reinforcement
+                if (tc.bases[from].size < 2) {
+                    if (owner == 0) {
+                        System.err.println(warnPrefix + "Source base has less than 2 units in troop sending attempt " + i + ", ignoring.");
+                    }
+                    continue;
                 }
-                continue;
-            }
 
-            // spawn a new troop from source base
-            Troop t = new Troop();
-            t.owner = owner;
-            t.size = tc.bases[from].size / 2;
-            t.x = tc.bases[from].x;
-            t.y = tc.bases[from].y;
-            t.sourceId = from;
-            t.targetId = to;
-            t.depTime = curStep;
-            int moveT = (int)Math.ceil(Math.sqrt(Math.pow(t.x - tc.bases[to].x, 2) + 
-                                                 Math.pow(t.y - tc.bases[to].y, 2)) / tc.speed);
-            t.arrivalTime = t.depTime + moveT;
-            troops.add(t);
+                // spawn a new troop from source base
+                Troop t = new Troop();
+                t.owner = owner;
+                t.size = tc.bases[from].size / 2;
+                t.x = tc.bases[from].x;
+                t.y = tc.bases[from].y;
+                t.sourceId = from;
+                t.targetId = to;
+                t.depTime = curStep;
+                int moveT = (int) Math.ceil(Math.sqrt(Math.pow(t.x - tc.bases[to].x, 2) +
+                        Math.pow(t.y - tc.bases[to].y, 2)) / tc.speed);
+                t.arrivalTime = t.depTime + moveT;
+                troops.add(t);
 
-            tc.bases[from].size -= t.size;
+                tc.bases[from].size -= t.size;
+            }
         }
-      }
     }
 
     void updateTroopArrivals() {
-      synchronized (worldLock) {
-        // check the troops which arrive at this time step
-        for (int t = 0; t < troops.size(); ) {
-            if (troops.get(t).arrivalTime != curStep) {
-                t++;
-                continue;
-            }
-            // let troop interact with the base
-            int town = troops.get(t).owner;
-            int tsize = troops.get(t).size;
-            int ttarget = troops.get(t).targetId;
-            if (town == tc.bases[ttarget].owner) {
-                // reinforcement scenario
-                tc.bases[ttarget].size += tsize;
-            } else {
-                // attack scenario
-                // compare sizes of troop and base with respect to their powers
-                // attack/defense power = size * powers[owner]
-                double pTroop = tsize * tc.powers[town];
-                double pBase = tc.bases[ttarget].size * tc.powers[tc.bases[ttarget].owner];
-                if (pBase >= pTroop) {
-                    // base wins but loses as many units as is necessary to overpower all units of the troop (rounding up)
-                    // it's possible that the base becomes empty
-                    tc.bases[ttarget].size = Math.max(0, tc.bases[ttarget].size - (int)Math.ceil(pTroop / tc.powers[tc.bases[ttarget].owner]));
-                    // empty bases preserve their ownership, but that doesn't affect anything except visualization
-                } else {
-                    // troop wins, occupies the bases but loses units
-                    tc.bases[ttarget].size = Math.max(0, tsize - (int)Math.ceil(pBase / tc.powers[town]));
-                    tc.bases[ttarget].owner = town;
+        synchronized (worldLock) {
+            // check the troops which arrive at this time step
+            for (int t = 0; t < troops.size(); ) {
+                if (troops.get(t).arrivalTime != curStep) {
+                    t++;
+                    continue;
                 }
+                // let troop interact with the base
+                int town = troops.get(t).owner;
+                int tsize = troops.get(t).size;
+                int ttarget = troops.get(t).targetId;
+                if (town == tc.bases[ttarget].owner) {
+                    // reinforcement scenario
+                    tc.bases[ttarget].size += tsize;
+                } else {
+                    // attack scenario
+                    // compare sizes of troop and base with respect to their powers
+                    // attack/defense power = size * powers[owner]
+                    double pTroop = tsize * tc.powers[town];
+                    double pBase = tc.bases[ttarget].size * tc.powers[tc.bases[ttarget].owner];
+                    if (pBase >= pTroop) {
+                        // base wins but loses as many units as is necessary to overpower all units of the troop (rounding up)
+                        // it's possible that the base becomes empty
+                        tc.bases[ttarget].size = Math.max(0, tc.bases[ttarget].size - (int) Math.ceil(pTroop / tc.powers[tc.bases[ttarget].owner]));
+                        // empty bases preserve their ownership, but that doesn't affect anything except visualization
+                    } else {
+                        // troop wins, occupies the bases but loses units
+                        tc.bases[ttarget].size = Math.max(0, tsize - (int) Math.ceil(pBase / tc.powers[town]));
+                        tc.bases[ttarget].owner = town;
+                    }
+                }
+                // make sure that after troop arrivals the base doesn't hold more than cap units
+                if (tc.bases[ttarget].size > tc.PERSON_CAP)
+                    tc.bases[ttarget].size = tc.PERSON_CAP;
+                // regardless of the outcome, the troop stops existing
+                troops.remove(t);
             }
-            // make sure that after troop arrivals the base doesn't hold more than cap units
-            if (tc.bases[ttarget].size > tc.PERSON_CAP)
-                tc.bases[ttarget].size = tc.PERSON_CAP;
-            // regardless of the outcome, the troop stops existing
-            troops.remove(t);
         }
-      }
     }
 
     void startNewStep() {
@@ -381,21 +380,11 @@ class World {
             double partMoved = (curStep - t.depTime) * 1.0 / (t.arrivalTime - t.depTime);
             double x = tc.bases[t.sourceId].x + (tc.bases[t.targetId].x - tc.bases[t.sourceId].x) * partMoved;
             double y = tc.bases[t.sourceId].y + (tc.bases[t.targetId].y - tc.bases[t.sourceId].y) * partMoved;
-            t.x = (int)x;
-            t.y = (int)y;
+            t.x = (int) x;
+            t.y = (int) y;
         }
     }
 
-}
-
-// "lazy" AI: do nothing
-class LazyAI {
-    int init(int[] baseLocations, int speed) { 
-        return 0;
-    }
-    int[] sendTroops(int[] bases, int[] troops) {
-        return new int[0];
-    }
 }
 
 // real AI opponent
@@ -406,28 +395,33 @@ class RealAI {
     int B;
     int owner;
     int[] baseX, baseY;
+
     RealAI(long seed, int own) {
-      try {
-        rnd = SecureRandom.getInstance("SHA1PRNG");
-      } catch (Exception e) { }
+        try {
+            rnd = SecureRandom.getInstance("SHA1PRNG");
+        } catch (Exception e) {
+        }
         rnd.setSeed(seed);
         owner = own;
         // once the base personnel reaches this threshold, the base sends out troops
         attackT = TestCase.PERSON_CAP / 2 + rnd.nextInt(TestCase.PERSON_CAP / 2);
         // the higher the locality, the more value there is in attacking nearby bases
-        locality = rnd.nextDouble()*2 + 1;
+        locality = rnd.nextDouble() * 2 + 1;
     }
-    int init(int[] baseLocations, int speed) { 
+
+    int init(int[] baseLocations, int speed) {
         B = baseLocations.length / 2;
         baseX = new int[B];
         baseY = new int[B];
         for (int i = 0; i < B; ++i) {
-            baseX[i] = baseLocations[2*i];
-            baseY[i] = baseLocations[2*i+1];
+            baseX[i] = baseLocations[2 * i];
+            baseY[i] = baseLocations[2 * i + 1];
         }
         return 0;
     }
+
     ArrayList<Integer> others;
+
     // picks a random base to attack based on distance to the opponent bases: the closer the base, the higher the chances are
     int getRandomBase(int sourceInd) {
         double[] probs = new double[others.size()];
@@ -437,7 +431,7 @@ class RealAI {
             probs[i] = Math.pow(1.0 / (Math.pow(baseX[sourceInd] - baseX[ind], 2) + Math.pow(baseY[sourceInd] - baseY[ind], 2)), locality);
             sp += probs[i];
         }
-        
+
         double r = rnd.nextDouble() * sp;
         double s = 0;
         for (int i = 0; i < others.size(); ++i) {
@@ -447,11 +441,12 @@ class RealAI {
         }
         return others.get(others.size() - 1).intValue();
     }
+
     int[] sendTroops(int[] bases, int[] troops) {
         // compile the list of bases owned by other players
         others = new ArrayList<Integer>();
         for (int i = 0; i < B; ++i)
-            if (bases[2*i] != owner)
+            if (bases[2 * i] != owner)
                 others.add(i);
         if (others.size() == 0) {
             // noone to fight!
@@ -460,7 +455,7 @@ class RealAI {
 
         ArrayList<Integer> att = new ArrayList<Integer>();
         for (int i = 0; i < B; ++i) {
-            if (bases[2*i] == owner && bases[2*i+1] > attackT) {
+            if (bases[2 * i] == owner && bases[2 * i + 1] > attackT) {
                 // send troops to a random base of different ownership
                 att.add(i);
                 att.add(getRandomBase(i));
@@ -474,90 +469,38 @@ class RealAI {
 }
 
 public class AbstractWarsVis {
-    static String execCommand = null;
     static boolean vis = true;
     static int delay = 100;
     static boolean startPaused = false;
+    AbstractWars player = new AbstractWars();
 
-    static Process solution;
-    BufferedReader reader;
-    PrintWriter writer;
-    boolean useLazy = false;
-    
-    LazyAI lazy;
     RealAI[] realAIs;
-    
-    public AbstractWarsVis() {
-        if (execCommand != null) {
-          try {
-            solution = Runtime.getRuntime().exec(execCommand);
-            reader = new BufferedReader(new InputStreamReader(solution.getInputStream()));
-            writer = new PrintWriter(solution.getOutputStream());
-            new ErrorStreamRedirector(solution.getErrorStream()).start();
-          } catch (Exception e) {
-            System.err.println("ERROR: Unable to execute your solution using the provided command: "
-                + execCommand + "; using lazy AI instead.");
-            useLazy = true;
-          }
-        } else {
-            useLazy = true;
-        }
-        if (useLazy) {
-            // if there is no command provided or there is some problem with it, we'll use lazy AI
-            lazy = new LazyAI();
-        }
-    }
-    
+
     int callInit(int owner, int[] baseLocations, int speed) throws IOException {
         if (owner > 0)
-            return realAIs[owner-1].init(baseLocations, speed);
-        if (useLazy)
-            return lazy.init(baseLocations, speed);
-        // interact with real solution
-        writer.println(baseLocations.length);
-        for (int i = 0; i < baseLocations.length; ++i)
-            writer.println(baseLocations[i]);
-        writer.println(speed);
-        writer.flush();
-        // ignore the return value
-        reader.readLine();
-        return 0;
+            return realAIs[owner - 1].init(baseLocations, speed);
+        return player.init(baseLocations, speed);
     }
-    
+
     int[] callSendTroops(int owner, int[] bases, int[] troops) throws IOException {
         if (owner > 0)
-            return realAIs[owner-1].sendTroops(bases, troops);
-        if (useLazy)
-            return lazy.sendTroops(bases, troops);
-        // interact with real solution
-        writer.println(bases.length);
-        for (int i = 0; i < bases.length; ++i)
-            writer.println(bases[i]);
-        writer.println(troops.length);
-        for (int i = 0; i < troops.length; ++i)
-            writer.println(troops[i]);
-        writer.flush();
-        // read return
-        int Nret = Integer.parseInt(reader.readLine());
-        int[] ret = new int[Nret];
-        for (int i = 0; i < Nret; ++i)
-            ret[i] = Integer.parseInt(reader.readLine());
-        return ret;
+            return realAIs[owner - 1].sendTroops(bases, troops);
+        return player.sendTroops(bases, troops);
     }
 
     public double runTest(String seed) {
         TestCase tc = new TestCase(seed);
-        
+
         // initialize opponents
         realAIs = new RealAI[tc.NOpp];
         for (int i = 1; i <= tc.NOpp; ++i)
-            realAIs[i - 1] = new RealAI(Long.parseLong(seed+""+i), i);
+            realAIs[i - 1] = new RealAI(Long.parseLong(seed + "" + i), i);
 
         // call init for all players
         int[] baseLoc = new int[tc.B * 2];
         for (int i = 0; i < tc.B; ++i) {
-            baseLoc[2*i] = tc.bases[i].x;
-            baseLoc[2*i+1] = tc.bases[i].y;
+            baseLoc[2 * i] = tc.bases[i].x;
+            baseLoc[2 * i + 1] = tc.bases[i].y;
         }
         try {
             callInit(0, baseLoc, tc.speed);
@@ -588,8 +531,8 @@ public class AbstractWarsVis {
             // let players do their turns ("simultaneously", so that neither has more information than the other)
             int[] basesArg = new int[tc.B * 2];
             for (int i = 0; i < tc.B; i++) {
-                basesArg[2*i] = tc.bases[i].owner;
-                basesArg[2*i+1] = tc.bases[i].size;
+                basesArg[2 * i] = tc.bases[i].owner;
+                basesArg[2 * i + 1] = tc.bases[i].size;
             }
 
             int[] troopsArg = new int[world.troops.size() * 4];
@@ -605,7 +548,7 @@ public class AbstractWarsVis {
             for (int owner = 0; owner <= tc.NOpp; owner++) {
                 int[] attacks;
                 try {
-                  attacks = callSendTroops(owner, basesArg, troopsArg);
+                    attacks = callSendTroops(owner, basesArg, troopsArg);
                 } catch (Exception e) {
                     if (owner > 0) {
                         // AI opponent threw exception - weird, but let's ignore and do nothing
@@ -651,28 +594,13 @@ public class AbstractWarsVis {
                 break;
             }
         }
-
-        stopSolution();
-
         return world.playerScore;
-    }
-
-    public static void stopSolution() {
-        if (solution != null) {
-            try {
-                solution.destroy();
-            } catch (Exception e) {
-                // do nothing
-            }
-        }
     }
 
     public static void main(String[] args) {
         String seed = "1";
         for (int i = 0; i < args.length; i++)
-            if (args[i].equals("-exec")) {
-                execCommand = args[++i];
-            } else if (args[i].equals("-seed")) {
+            if (args[i].equals("-seed")) {
                 seed = args[++i];
             } else if (args[i].equals("-novis")) {
                 vis = false;
@@ -691,31 +619,6 @@ public class AbstractWarsVis {
         } catch (RuntimeException e) {
             System.err.println("ERROR: Unexpected error while running your test case.");
             e.printStackTrace();
-            AbstractWarsVis.stopSolution();
-        }
-    }
-}
-
-class ErrorStreamRedirector extends Thread {
-    public BufferedReader reader;
-
-    public ErrorStreamRedirector(InputStream is) {
-        reader = new BufferedReader(new InputStreamReader(is));
-    }
-
-    public void run() {
-        while (true) {
-            String s;
-            try {
-                s = reader.readLine();
-            } catch (Exception e) {
-                //e.printStackTrace();
-                return;
-            }
-            if (s == null) {
-                break;
-            }
-            System.err.println(s);
         }
     }
 }
