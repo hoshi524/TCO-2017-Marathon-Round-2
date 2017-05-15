@@ -51,11 +51,9 @@ class TestCase {
 
     SecureRandom rnd = null;
 
-    public TestCase(String seedStr) {
-        long seed = 0;
+    public TestCase(long seed) {
         try {
             rnd = SecureRandom.getInstance("SHA1PRNG");
-            seed = Long.parseLong(seedStr);
             rnd.setSeed(seed);
         } catch (Exception e) {
             System.err.println("ERROR: unable to generate test case.");
@@ -180,7 +178,10 @@ class Drawer extends JFrame {
                 // output shares of active players using their respective colors
                 for (int i = 0; i <= world.tc.NOpp; ++i) {
                     g2.setColor(new Color(getOwnerColor(i)));
-                    g2.drawString(String.format("#" + i + " (power %.2f) share %.4f", world.tc.powers[i], world.playersUnits[i] * 1.0 / world.totalUnits), horPos, 90 + 20 * i);
+                    try {
+                        g2.drawString(String.format("#" + i + " (power %.2f) share %.4f", world.tc.powers[i], world.playersUnits[i] * 1.0 / world.totalUnits), horPos, 90 + 20 * i);
+                    } catch (Exception e) {
+                    }
                 }
             }
         }
@@ -239,7 +240,7 @@ class World {
     final Object worldLock = new Object();
     TestCase tc;
     int curStep = -1;
-    List<Troop> troops = new ArrayList<Troop>();
+    List<Troop> troops = new ArrayList<>();
     double playerScore = 0;
     long totalUnits;
     long[] playersUnits;
@@ -492,7 +493,7 @@ public class AbstractWarsVis {
         return player.sendTroops(bases, troops);
     }
 
-    public double runTest(String seed) {
+    public double runTest(long seed) {
         TestCase tc = new TestCase(seed);
 
         // initialize opponents
@@ -559,7 +560,8 @@ public class AbstractWarsVis {
                         System.err.println(errPrefix + "Opponent " + owner + " threw exception in sendTroops: " + e);
                         attacks = new int[0];
                     } else {
-                        System.err.println(errPrefix + "Unable to get return from sendTroops. " + e);
+                        System.err.println(errPrefix + "Unable to get return from sendTroops. ");
+                        e.printStackTrace();
                         return -1;
                     }
                 }
@@ -602,11 +604,9 @@ public class AbstractWarsVis {
     }
 
     public static void main(String[] args) {
-        String seed = "1";
+        long seed = 3;
         for (int i = 0; i < args.length; i++)
-            if (args[i].equals("-seed")) {
-                seed = args[++i];
-            } else if (args[i].equals("-novis")) {
+            if (args[i].equals("-novis")) {
                 vis = false;
             } else if (args[i].equals("-delay")) {
                 delay = Integer.parseInt(args[++i]);
