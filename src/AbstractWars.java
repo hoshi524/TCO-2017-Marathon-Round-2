@@ -47,13 +47,54 @@ public class AbstractWars {
         List<Base> opp = Stream.of(bases).filter(x -> x.owner != 0).collect(Collectors.toList());
         if (turn < 2 || opp.size() == 0) return new int[0];
 
+
         List<Integer> ret = new ArrayList<>();
-        for (Base b : aly) {
-            if (b.troops >= 900) {
-                Base t = opp.stream().sorted((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).findFirst().get();
-                Base c = Stream.of(bases).filter(x -> b.id != x.id && sendTurn[b.id][t.id] * 6 > (sendTurn[b.id][x.id] + sendTurn[x.id][t.id]) * 5).sorted((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).findFirst().orElse(t);
-                ret.add(b.id);
-                ret.add(c.id);
+        while (true) {
+            Base t = null;
+            int time = 0xffff;
+            List<Base> allys = new ArrayList<>();
+            for (Base x : opp) {
+                Collections.sort(aly, (a, b) -> sendTurn[x.id][a.id] - sendTurn[x.id][b.id]);
+                for (int i = 0, is = Math.min(10, aly.size()), st = 0, et = x.troops, pt = 0; i < is; ++i) {
+                    Base a = aly.get(i);
+                    if (a.troops < 2) continue;
+                    st += a.troops / 2;
+                    et += (x.growth + x.troops / 100) * (sendTurn[a.id][x.id] - pt);
+                    pt = sendTurn[a.id][x.id];
+                    if (pt > 50) break;
+                    if (st * 5 > et * 6 && time > pt) {
+                        t = x;
+                        time = pt;
+                        allys = aly.subList(0, i).stream().filter(z -> z.troops >= 2).collect(Collectors.toList());
+                    }
+                }
+            }
+            if (t != null) {
+                final Base x = t;
+                Collections.sort(aly, (a, b) -> sendTurn[x.id][a.id] - sendTurn[x.id][b.id]);
+                for (Base a : allys) {
+                    ret.add(a.id);
+                    ret.add(x.id);
+                    a.troops /= 2;
+                }
+                opp.remove(x);
+            } else {
+                break;
+            }
+        }
+        if (opp.size() > 0) {
+            for (Base b : aly) {
+                if (b.troops >= 900) {
+                    Base t = opp.stream().sorted((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).findFirst().get();
+                    Base c = Stream.of(bases).filter(x -> b.id != x.id && sendTurn[b.id][t.id] * 6 > (sendTurn[b.id][x.id] + sendTurn[x.id][t.id]) * 5).sorted((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).findFirst().orElse(t);
+                    ret.add(b.id);
+                    ret.add(c.id);
+                    Troops x = new Troops();
+                    x.owner = 0;
+                    x.size = b.troops / 2;
+                    x.to = c.id;
+                    x.time = turn + sendTurn[b.id][c.id];
+                }
             }
         }
         return to(ret);
