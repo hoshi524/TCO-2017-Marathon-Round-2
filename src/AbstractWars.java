@@ -48,7 +48,7 @@ public class AbstractWars {
         final int limit = speed < 2 ? 900 : 8;
         for (Base b : aly) {
             if (b.troops >= limit) {
-                Base t = opp.stream().sorted((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).findFirst().get();
+                Base t = opp.stream().min((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).get();
                 ret.add(b.id);
                 ret.add(t.id);
             }
