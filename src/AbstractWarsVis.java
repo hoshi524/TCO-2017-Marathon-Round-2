@@ -5,9 +5,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
 
 class Troop {
@@ -38,10 +38,10 @@ class TestCase {
     static final int MAX_GROWTH_RATE = 3;
     static final int MIN_PERSONNEL = 1;
     static final int MAX_PERSONNEL = 10;
-    static final int MIN_SPEED = 1;
-    static final int MAX_SPEED = 10;
-    static final int MIN_OPPONENTS = 1;
-    static final int MAX_OPPONENTS = 4;
+    static final int MIN_SPEED = 1; // 1
+    static final int MAX_SPEED = 10; // 10
+    static final int MIN_OPPONENTS = 1; // 1
+    static final int MAX_OPPONENTS = 4; // 4
 
     public int NOpp;        // player 0 is the player, players 1..NOpp are AI opponents
     public double[] powers; // all opponents except player have strong troops
@@ -98,8 +98,10 @@ class TestCase {
 
         powers = new double[NOpp + 1];
         powers[0] = 1.0;
-        for (int i = 1; i <= NOpp; ++i)
+        for (int i = 1; i <= NOpp; ++i) {
             powers[i] = 1.0 + rnd.nextDouble() * 0.2;
+            // powers[i] = 1.0;
+        }
     }
 }
 
@@ -594,7 +596,7 @@ public class AbstractWarsVis {
             }
 
             if (world.simComplete) {
-                System.err.println("Simulation completed at step " + step + ".");
+                // System.err.println("Simulation completed at step " + step + ".");
                 // if we finish simulation early, the rest of steps will get the same score each step
                 world.playerScore += (tc.SIMULATION_TIME - step - 1) * world.playersUnits[0] * 1.0 / world.totalUnits;
                 break;
@@ -604,25 +606,23 @@ public class AbstractWarsVis {
     }
 
     public static void main(String[] args) {
-        long seed = 3;
-        for (int i = 0; i < args.length; i++)
-            if (args[i].equals("-novis")) {
-                vis = false;
-            } else if (args[i].equals("-delay")) {
-                delay = Integer.parseInt(args[++i]);
-            } else if (args[i].equals("-pause")) {
-                startPaused = true;
-            } else {
-                System.out.println("WARNING: unknown argument " + args[i] + ".");
-            }
-
-        AbstractWarsVis vis = new AbstractWarsVis();
         try {
-            double score = vis.runTest(seed);
-            System.out.println("Score = " + score);
+            final int testcase = 1000;
+            vis = false;
+            double sum = 0;
+            long seed = 1;
+            for (long end = seed + testcase; seed < end; ++seed) {
+                double score = new AbstractWarsVis().runTest(seed);
+                if (score < 0) throw new RuntimeException("seed : " + seed);
+                sum += score;
+                debug("seed", seed, "score", score, "avg", sum / (seed - end + testcase + 1));
+            }
         } catch (RuntimeException e) {
-            System.err.println("ERROR: Unexpected error while running your test case.");
             e.printStackTrace();
         }
+    }
+
+    private static void debug(Object... o) {
+        System.out.println(Arrays.deepToString(o));
     }
 }

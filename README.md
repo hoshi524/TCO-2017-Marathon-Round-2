@@ -4,5 +4,4 @@
 
 https://community.topcoder.com/longcontest/?module=ViewProblemStatement&rd=16928&compid=55902
 https://community.topcoder.com/longcontest/?module=ViewStandings&rd=16928
-
-## memo
+https://community.topcoder.com/longcontest/?module=ViewActiveContests&rt=13
