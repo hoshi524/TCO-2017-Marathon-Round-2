@@ -40,8 +40,8 @@ public class AbstractWars {
             }
         }
         ++turn;
-        List<Base> aly = Stream.of(bases).filter(x -> x.owner == 0).collect(Collectors.toList());
-        List<Base> opp = Stream.of(bases).filter(x -> x.owner != 0).collect(Collectors.toList());
+        List<Base> aly = Stream.of(bases).filter(x -> x.owner == 0 && x.troops > 0).collect(Collectors.toList());
+        List<Base> opp = Stream.of(bases).filter(x -> x.owner != 0 || x.troops == 0).collect(Collectors.toList());
         if (turn < 2 || opp.size() == 0) return new int[0];
 
         List<Integer> ret = new ArrayList<>();
