@@ -602,6 +602,7 @@ public class AbstractWarsVis {
                 break;
             }
         }
+        debug("score", world.playerScore, "players", tc.NOpp + 1, "bases", tc.bases.length, "speed", tc.speed, "powers", tc.powers);
         return world.playerScore;
     }
 
