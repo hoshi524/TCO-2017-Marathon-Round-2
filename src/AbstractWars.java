@@ -27,7 +27,7 @@ public class AbstractWars {
                 sendTurn[i][j] = sendTurn[j][i] = (int) Math.ceil(distance(bases[i], bases[j]) / speed);
             }
         }
-        arrivalTroops = new int[bases.length][MAX_TURN];
+        arrivalTroops = new int[bases.length][MAX_TURN + 5];
         return 0;
     }
 
@@ -47,8 +47,7 @@ public class AbstractWars {
         if (turn < 2 || opp.size() == 0) return new int[0];
 
         for (Base b : aly) {
-            b.nextTroops = b.troops + b.growth + b.troops / 100;
-            if (turn + 1 < MAX_TURN) b.nextTroops += arrivalTroops[b.id][turn + 1];
+            b.nextTroops = b.troops + b.growth + b.troops / 100 + arrivalTroops[b.id][turn + 1];
         }
         for (Base b : opp) {
             b.reverse = Integer.MAX_VALUE;
@@ -64,7 +63,7 @@ public class AbstractWars {
         }
 
         List<Integer> ret = new ArrayList<>();
-        for (Base b : aly.stream().filter(x -> x.troops > 1).collect(Collectors.toList())) {
+        aly.stream().filter(x -> x.troops > 1).forEach(b -> {
             opp.stream().filter(x -> turn + sendTurn[b.id][x.id] < x.reverse).min((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).ifPresent(t -> {
                 if (sendTurn[b.id][t.id] > 10 * (6 - players) && b.nextTroops < 1000) return;
                 int arrival = turn + sendTurn[b.id][t.id];
@@ -72,7 +71,7 @@ public class AbstractWars {
                 ret.add(t.id);
                 if (arrival < MAX_TURN) arrivalTroops[t.id][arrival] += Math.ceil((b.troops / 2) / 1.20);
             });
-        }
+        });
         return to(ret);
     }
 
