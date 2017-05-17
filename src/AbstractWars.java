@@ -51,6 +51,10 @@ public class AbstractWars {
         List<Base> opp = Stream.of(bases).filter(x -> x.owner != 0 || x.troops == 0).collect(Collectors.toList());
         if (turn < 2 || opp.size() == 0) return new int[0];
 
+        for (Base b : aly) {
+            b.nextTroops = b.troops + b.growth + b.troops / 100;
+            if (turn + 1 < MAX_TURN) b.nextTroops += arrivalTroops[b.id][turn + 1];
+        }
         for (Base b : opp) {
             b.reverse = Integer.MAX_VALUE;
             int troops = b.troops;
@@ -65,22 +69,20 @@ public class AbstractWars {
         }
 
         List<Integer> ret = new ArrayList<>();
-        final int limit = speed < 2 ? 990 : 2;
-        for (Base b : aly) {
-            if (b.troops >= limit) {
-                opp.stream().filter(x -> turn + sendTurn[b.id][x.id] < x.reverse).min((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).ifPresent(t -> {
-                    int arrival = turn + sendTurn[b.id][t.id];
-                    ret.add(b.id);
-                    ret.add(t.id);
-                    if (arrival < MAX_TURN) arrivalTroops[t.id][arrival] += Math.ceil((b.troops / 2) / 1.20);
-                });
-            }
+        for (Base b : aly.stream().filter(x -> x.troops > 1).collect(Collectors.toList())) {
+            opp.stream().filter(x -> turn + sendTurn[b.id][x.id] < x.reverse).min((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).ifPresent(t -> {
+                if (sendTurn[b.id][t.id] > 40 && b.nextTroops < 1000) return;
+                int arrival = turn + sendTurn[b.id][t.id];
+                ret.add(b.id);
+                ret.add(t.id);
+                if (arrival < MAX_TURN) arrivalTroops[t.id][arrival] += Math.ceil((b.troops / 2) / 1.20);
+            });
         }
         return to(ret);
     }
 
     class Base {
-        int id, x, y, owner, troops, growth, reverse;
+        int id, x, y, owner, troops, nextTroops, growth, reverse;
     }
 
     class Troops {

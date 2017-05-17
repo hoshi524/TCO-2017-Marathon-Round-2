@@ -162,10 +162,8 @@ class Drawer extends JFrame {
                 g.setFont(new Font("Arial", Font.PLAIN, 10));
                 for (Troop t : world.troops) {
                     int c = getOwnerColor(t.owner);
-                    g.setColor(new Color(c));
-                    g.fillOval(15 + t.x - 3, 15 + t.y - 3, 7, 7);
                     g.setColor(new Color(c / 2));
-                    g2.drawString("" + t.size, 15 + t.x + 1, 15 + t.y);
+                    g2.drawString(String.valueOf(t.size), 12 + t.x, 18 + t.y);
                 }
 
                 g.setFont(new Font("Arial", Font.BOLD, 12));
@@ -602,7 +600,7 @@ public class AbstractWarsVis {
                 break;
             }
         }
-        debug("score", world.playerScore, "players", tc.NOpp + 1, "bases", tc.bases.length, "speed", tc.speed, "powers", tc.powers);
+        // debug("score", world.playerScore, "players", tc.NOpp + 1, "bases", tc.bases.length, "speed", tc.speed, "powers", tc.powers);
         return world.playerScore;
     }
 
