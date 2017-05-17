@@ -52,38 +52,35 @@ public class AbstractWars {
         if (turn < 2 || opp.size() == 0) return new int[0];
 
         for (Base b : opp) {
-            b.reverse = false;
+            b.reverse = Integer.MAX_VALUE;
             int troops = b.troops;
             for (int t = turn + 1, ts = Math.min(t + 100, MAX_TURN); t < ts; ++t) {
                 troops += b.growth + troops / 100;
                 troops -= arrivalTroops[b.id][t];
                 if (troops < 0) {
-                    b.reverse = true;
+                    b.reverse = t;
                     break;
                 }
             }
         }
-        opp = opp.stream().filter(x -> x.reverse == false).collect(Collectors.toList());
 
         List<Integer> ret = new ArrayList<>();
-        if (opp.size() > 0) {
-            final int limit = speed < 2 ? 990 : 2;
-            for (Base b : aly) {
-                if (b.troops >= limit) {
-                    Base t = opp.stream().min((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).get();
+        final int limit = speed < 2 ? 990 : 2;
+        for (Base b : aly) {
+            if (b.troops >= limit) {
+                opp.stream().filter(x -> turn + sendTurn[b.id][x.id] < x.reverse).min((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).ifPresent(t -> {
                     int arrival = turn + sendTurn[b.id][t.id];
                     ret.add(b.id);
                     ret.add(t.id);
                     if (arrival < MAX_TURN) arrivalTroops[t.id][arrival] += Math.ceil((b.troops / 2) / 1.20);
-                }
+                });
             }
         }
         return to(ret);
     }
 
     class Base {
-        int id, x, y, owner, troops, growth;
-        boolean reverse;
+        int id, x, y, owner, troops, growth, reverse;
     }
 
     class Troops {
