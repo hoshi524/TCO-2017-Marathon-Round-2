@@ -510,7 +510,7 @@ public class AbstractWarsVis {
         try {
             callInit(0, baseLoc, tc.speed);
         } catch (Exception e) {
-            System.err.println("ERROR: calling init failed for your solution: " + e);
+            e.printStackTrace();
             return -1;
         }
         for (int i = 1; i <= tc.NOpp; ++i)
