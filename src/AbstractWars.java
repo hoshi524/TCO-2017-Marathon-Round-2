@@ -32,20 +32,15 @@ public class AbstractWars {
     }
 
     int[] sendTroops(int[] bases_, int[] troops_) {
-        int players = 0;
-        {
-            Set<Integer> set = new HashSet<>();
-            for (int i = 0; i < this.bases.length; ++i) {
-                if (turn == 1) {
-                    bases[i].growth = bases_[2 * i + 1] - bases[i].troops;
-                    if (bases[i].growth < 1 || 3 < bases[i].growth) throw new RuntimeException();
-                }
-                bases[i].owner = bases_[2 * i];
-                bases[i].troops = bases_[2 * i + 1];
-                set.add(bases[i].owner);
+        for (int i = 0; i < this.bases.length; ++i) {
+            if (turn == 1) {
+                bases[i].growth = bases_[2 * i + 1] - bases[i].troops;
+                if (bases[i].growth < 1 || 3 < bases[i].growth) throw new RuntimeException();
             }
-            players = set.size();
+            bases[i].owner = bases_[2 * i];
+            bases[i].troops = bases_[2 * i + 1];
         }
+        int players = (int) Stream.of(bases).mapToInt(x -> x.owner).distinct().count();
         ++turn;
         List<Base> aly = Stream.of(bases).filter(x -> x.owner == 0 && x.troops > 0).collect(Collectors.toList());
         List<Base> opp = Stream.of(bases).filter(x -> x.owner != 0 || x.troops == 0).collect(Collectors.toList());
@@ -71,7 +66,7 @@ public class AbstractWars {
         List<Integer> ret = new ArrayList<>();
         for (Base b : aly.stream().filter(x -> x.troops > 1).collect(Collectors.toList())) {
             opp.stream().filter(x -> turn + sendTurn[b.id][x.id] < x.reverse).min((x, y) -> sendTurn[b.id][x.id] - sendTurn[b.id][y.id]).ifPresent(t -> {
-                if (sendTurn[b.id][t.id] > 40 && b.nextTroops < 1000) return;
+                if (sendTurn[b.id][t.id] > 10 * (6 - players) && b.nextTroops < 1000) return;
                 int arrival = turn + sendTurn[b.id][t.id];
                 ret.add(b.id);
                 ret.add(t.id);
