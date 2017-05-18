@@ -61,18 +61,16 @@ public class AbstractWars {
                 int x = troops_[i * 4 + 2];
                 int y = troops_[i * 4 + 3];
                 if (owner == 0) continue;
-                int count = 0;
-                int id = 0;
+                int id = -1;
                 for (int j = 0; j < bases.length; ++j) {
                     Base b = this.bases[turn - 1][j];
                     if (used[j]) continue;
                     if (b.owner == owner && b.troops / 2 == size && distance(x, y, b.base.x, b.base.y) <= speed) {
-                        ++count;
                         id = j;
                     }
                 }
                 Troops t = null;
-                if (count == 1) {
+                if (id != -1) {
                     t = new Troops();
                     t.owner = owner;
                     t.size = size;
@@ -83,19 +81,17 @@ public class AbstractWars {
                     used[id] = true;
                     troops.add(t);
                 } else {
-                    count = 0;
                     for (Troops z : troops) {
                         if (z.owner == owner && z.size == size && distance(x, y, z.x, z.y) <= speed + 1) {
-                            ++count;
                             t = z;
                         }
                     }
-                    if (count != 1) continue;
+                    if (t == null) continue;
                     t.x = x;
                     t.y = y;
                 }
                 t.to = -1;
-                count = 0;
+                int count = 0;
                 id = 0;
                 for (int j = 0; j < bases.length; ++j) {
                     Base b = this.bases[t.in][j];
