@@ -477,6 +477,7 @@ public class AbstractWarsVis {
     static boolean vis = true;
     static int delay = 100;
     static boolean startPaused = false;
+    World world;
     AbstractWars player = new AbstractWars();
 
     RealAI[] realAIs;
@@ -507,6 +508,8 @@ public class AbstractWarsVis {
             baseLoc[2 * i] = tc.bases[i].x;
             baseLoc[2 * i + 1] = tc.bases[i].y;
         }
+        world = new World(tc);
+
         try {
             callInit(0, baseLoc, tc.speed);
         } catch (Exception e) {
@@ -520,7 +523,6 @@ public class AbstractWarsVis {
                 System.err.println("Opponent " + i + " threw exception in init: " + e);
             }
 
-        World world = new World(tc);
         Drawer drawer = null;
         if (vis) {
             drawer = new Drawer(world);
