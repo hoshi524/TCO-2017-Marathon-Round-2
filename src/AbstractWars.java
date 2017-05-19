@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -45,10 +46,7 @@ public class AbstractWars {
         for (int i = 0; i < bases.length; ++i) {
             bases[i].owner = bases_[2 * i];
             bases[i].troops = bases_[2 * i + 1];
-            if (turn == 1) {
-                bases[i].base.growth = bases[i].troops - this.bases[turn - 1][i].troops;
-                if (bases[i].base.growth < 1 || 3 < bases[i].base.growth) throw new RuntimeException();
-            }
+            if (turn == 1) bases[i].base.growth = bases[i].troops - this.bases[turn - 1][i].troops;
         }
         {
             for (Troops z : troops) {
@@ -134,11 +132,13 @@ public class AbstractWars {
 
         List<Integer> ret = new ArrayList<>();
         aly.stream().filter(x -> x.troops > 1).forEach(b -> {
-            opp.stream().filter(x -> turn + sendTurn[b.base.id][x.base.id] < x.reverse).min((x, y) -> sendTurn[b.base.id][x.base.id] - sendTurn[b.base.id][y.base.id]).ifPresent(t -> {
-                if (sendTurn[b.base.id][t.base.id] > 10 * (6 - players) && b.nextTroops < 1000) return;
-                int arrival = turn + sendTurn[b.base.id][t.base.id];
+            Predicate<Base> predicate = b.nextTroops > 1000 ?
+                    x -> turn + sendTurn[b.base.id][x.base.id] < x.reverse || (b != x && x.owner == 0 && x.troops < 300) :
+                    x -> turn + sendTurn[b.base.id][x.base.id] < x.reverse && sendTurn[b.base.id][x.base.id] < 10 * (6 - players);
+            Stream.of(bases).filter(predicate).min((x, y) -> sendTurn[b.base.id][x.base.id] - sendTurn[b.base.id][y.base.id]).ifPresent(t -> {
                 ret.add(b.base.id);
                 ret.add(t.base.id);
+                int arrival = turn + sendTurn[b.base.id][t.base.id];
                 if (arrival < MAX_TURN) arrivalTroops[t.base.id][arrival] += Math.ceil((b.troops / 2) / 1.20);
             });
         });
