@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class AbstractWars {
+public class Test {
 
     private static final int MAX_TURN = 2005;
     private int[][] arrivalTroops;

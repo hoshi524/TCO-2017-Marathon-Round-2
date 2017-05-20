@@ -6,9 +6,13 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.net.InterfaceAddress;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 class Troop {
     int owner;
@@ -473,12 +477,46 @@ class RealAI {
     }
 }
 
+interface Player {
+    int init(int[] baseLocations, int speed_);
+
+    int[] sendTroops(int[] bases_, int[] troops_);
+}
+
+class Player1 implements Player {
+    AbstractWars x = new AbstractWars();
+
+    @Override
+    public int init(int[] baseLocations, int speed_) {
+        return x.init(baseLocations, speed_);
+    }
+
+    @Override
+    public int[] sendTroops(int[] bases_, int[] troops_) {
+        return x.sendTroops(bases_, troops_);
+    }
+}
+
+class Player2 implements Player {
+    Test x = new Test();
+
+    @Override
+    public int init(int[] baseLocations, int speed_) {
+        return x.init(baseLocations, speed_);
+    }
+
+    @Override
+    public int[] sendTroops(int[] bases_, int[] troops_) {
+        return x.sendTroops(bases_, troops_);
+    }
+}
+
+
 public class AbstractWarsVis {
-    static boolean vis = true;
     static int delay = 100;
     static boolean startPaused = false;
     World world;
-    AbstractWars player = new AbstractWars();
+    Player player;
 
     RealAI[] realAIs;
 
@@ -494,7 +532,12 @@ public class AbstractWarsVis {
         return player.sendTroops(bases, troops);
     }
 
-    public double runTest(long seed) {
+    public double runTest(long seed, boolean vis, Player player) {
+        return runTest(seed, vis, player, TestCase.SIMULATION_TIME);
+    }
+
+    public double runTest(long seed, boolean vis, Player player, int SIMULATION_TIME) {
+        this.player = player;
         TestCase tc = new TestCase(seed);
 
         // initialize opponents
@@ -531,7 +574,7 @@ public class AbstractWarsVis {
             }
         }
 
-        for (int step = 0; step < tc.SIMULATION_TIME; step++) {
+        for (int step = 0; step < SIMULATION_TIME; step++) {
             world.startNewStep();
             world.updateTroopArrivals();
 
@@ -606,20 +649,35 @@ public class AbstractWarsVis {
         return world.playerScore;
     }
 
-    public static void main(String[] args) {
-        try {
+    public static void main(String[] args) throws Exception {
+        if (false) {
+            for (long seed = 1; seed < 1000; ++seed) {
+                double score1 = new AbstractWarsVis().runTest(seed, false, new Player1());
+                double score2 = new AbstractWarsVis().runTest(seed, false, new Player2());
+                if ((score1 > 1000 && score2 < 500) || (score1 < 500 && score2 > 1000)) {
+                    debug(score1, score2);
+                    long s = seed;
+                    ExecutorService es = Executors.newFixedThreadPool(2);
+                    es.submit(() -> {
+                        new AbstractWarsVis().runTest(s, true, new Player1(), 500);
+                    });
+                    es.submit(() -> {
+                        new AbstractWarsVis().runTest(s, true, new Player2(), 500);
+                    });
+                    es.shutdown();
+                    es.awaitTermination(1, TimeUnit.DAYS);
+                }
+            }
+        } else {
             final int testcase = 1000;
-            vis = false;
             double sum = 0;
             long seed = 1;
             for (long end = seed + testcase; seed < end; ++seed) {
-                double score = new AbstractWarsVis().runTest(seed);
+                double score = new AbstractWarsVis().runTest(seed, false, new Player1());
                 if (score < 0) throw new RuntimeException("seed : " + seed);
                 sum += score;
                 debug("seed", seed, "score", score, "avg", sum / (seed - end + testcase + 1));
             }
-        } catch (RuntimeException e) {
-            e.printStackTrace();
         }
     }
 
