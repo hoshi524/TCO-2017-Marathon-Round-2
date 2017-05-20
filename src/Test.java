@@ -10,7 +10,6 @@ public class Test {
     private static final int MAX_TURN = 2005;
     private int[][] arrivalTroops;
     private Base[][] bases;
-    private List<Troops> troops;
     private int speed, turn;
     private int[][] sendTurn;
 
@@ -39,22 +38,21 @@ public class Test {
             }
         }
         arrivalTroops = new int[bs][MAX_TURN];
-        troops = new ArrayList<>();
         return 0;
     }
 
     int[] sendTroops(int[] bases_, int[] troops_) {
-        Base[] bases = this.bases[turn];
+        Base[] bases = this.bases[++turn];
         for (int i = 0; i < bases.length; ++i) {
             bases[i].owner = bases_[2 * i];
             bases[i].troops = bases_[2 * i + 1];
-            if (turn == 1) bases[i].base.growth = bases[i].troops - this.bases[turn - 1][i].troops;
+            if (turn == 2) bases[i].base.growth = bases[i].troops - this.bases[turn - 1][i].troops;
         }
-        List<Base> aly = Stream.of(bases).filter(x -> x.owner == 0 && x.troops > 1).collect(Collectors.toList());
+        if (turn < 2) return new int[0];
+
+        List<Base> aly = Stream.of(bases).filter(x -> x.owner == 0 && x.troops >= 2).collect(Collectors.toList());
         List<Base> opp = Stream.of(bases).filter(x -> x.owner != 0 || x.troops == 0).collect(Collectors.toList());
         int players = (int) Stream.of(bases).mapToInt(x -> x.owner).distinct().count();
-        ++turn;
-        if (turn < 2 || opp.size() == 0) return new int[0];
 
         for (Base b : aly) {
             b.nextTroops = b.troops + b.base.growth + b.troops / 100 + arrivalTroops[b.base.id][turn + 1];
@@ -78,10 +76,10 @@ public class Test {
         while (true) {
             Base t = null;
             int value = Integer.MAX_VALUE;
-            List<Base> va = aly.stream().filter(a -> a.troops < 100 && used[a.base.id] == false).collect(Collectors.toList());
+            List<Base> v = aly.stream().filter(a -> a.troops < 100 && used[a.base.id] == false).collect(Collectors.toList());
             for (Base x : opp) {
                 int s = 0;
-                for (Base a : va.stream().filter(a -> sendTurn[a.base.id][x.base.id] < x.reverse).sorted(compare(x)).collect(Collectors.toList())) {
+                for (Base a : v.stream().filter(a -> sendTurn[a.base.id][x.base.id] < x.reverse).sorted(compare(x)).collect(Collectors.toList())) {
                     if (sendTurn[x.base.id][a.base.id] > 20 + 10 * (5 - players)) break;
                     s += a.base.growth;
                     if (x.base.growth + x.troops / 100 < s) {
@@ -96,7 +94,7 @@ public class Test {
             if (t == null) break;
             Base x = t;
             int s = 0;
-            for (Base a : va.stream().filter(a -> sendTurn[a.base.id][x.base.id] < x.reverse).sorted(compare(x)).collect(Collectors.toList())) {
+            for (Base a : v.stream().filter(a -> sendTurn[a.base.id][x.base.id] < x.reverse).sorted(compare(x)).collect(Collectors.toList())) {
                 ret.add(a.base.id);
                 ret.add(x.base.id);
                 int arrival = turn + sendTurn[a.base.id][t.base.id];
@@ -110,11 +108,11 @@ public class Test {
         }
 
         aly.stream().filter(x -> used[x.base.id] == false && x.nextTroops > 1000).forEach(a -> {
-            Stream.of(bases).filter(x -> sendTurn[a.base.id][x.base.id] < x.reverse || (a != x && x.owner == 0 && x.troops < 300)).min(compare(a)).ifPresent(t -> {
+            Stream.of(bases).filter(x -> sendTurn[a.base.id][x.base.id] < x.reverse || (a != x && x.owner == 0 && x.troops < 300)).min(compare(a)).ifPresent(x -> {
                 ret.add(a.base.id);
-                ret.add(t.base.id);
-                int arrival = turn + sendTurn[a.base.id][t.base.id];
-                if (arrival < MAX_TURN) arrivalTroops[t.base.id][arrival] += Math.ceil((a.troops / 2) / 1.20);
+                ret.add(x.base.id);
+                int arrival = turn + sendTurn[a.base.id][x.base.id];
+                if (arrival < MAX_TURN) arrivalTroops[x.base.id][arrival] += Math.ceil((a.troops / 2) / 1.20);
             });
         });
         return to(ret);
@@ -131,10 +129,6 @@ public class Test {
     class Base {
         BaseBase base;
         int owner, troops, nextTroops, reverse;
-    }
-
-    class Troops {
-        int owner, size, x, y, from, in, to, time = Integer.MAX_VALUE;
     }
 
     double distance(int a, int b, int c, int d) {
