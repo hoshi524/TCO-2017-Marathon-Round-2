@@ -669,6 +669,10 @@ public class AbstractWarsVis {
                     es.awaitTermination(1, TimeUnit.DAYS);
                 }
             }
+        } else if (false) {
+            for (long seed = 500; seed < 1000; ++seed) {
+                new AbstractWarsVis().runTest(seed, true, new Player1());
+            }
         } else {
             class State {
                 double sum1 = 0;

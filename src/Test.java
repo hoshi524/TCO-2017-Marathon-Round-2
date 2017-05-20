@@ -66,7 +66,7 @@ public class Test {
                 troops += b.base.growth + troops / 100;
                 troops -= arrivalTroops[b.base.id][t];
                 if (troops < 0) {
-                    b.reverse = t;
+                    b.reverse = t - turn;
                     break;
                 }
             }
@@ -78,10 +78,11 @@ public class Test {
         while (true) {
             Base t = null;
             int value = Integer.MAX_VALUE;
+            List<Base> va = aly.stream().filter(a -> a.troops < 100 && used[a.base.id] == false).collect(Collectors.toList());
             for (Base x : opp) {
                 int s = 0;
-                for (Base a : aly.stream().filter(a -> a.troops < 100 && used[a.base.id] == false).sorted(compare(x)).collect(Collectors.toList())) {
-                    if (sendTurn[x.base.id][a.base.id] > 15 + 10 * (5 - players)) break;
+                for (Base a : va.stream().filter(a -> sendTurn[a.base.id][x.base.id] < x.reverse).sorted(compare(x)).collect(Collectors.toList())) {
+                    if (sendTurn[x.base.id][a.base.id] > 20 + 10 * (5 - players)) break;
                     s += a.base.growth;
                     if (x.base.growth + x.troops / 100 < s) {
                         if (value > sendTurn[x.base.id][a.base.id]) {
@@ -95,7 +96,7 @@ public class Test {
             if (t == null) break;
             Base x = t;
             int s = 0;
-            for (Base a : aly.stream().filter(a -> a.troops < 100 && used[a.base.id] == false).sorted(compare(x)).collect(Collectors.toList())) {
+            for (Base a : va.stream().filter(a -> sendTurn[a.base.id][x.base.id] < x.reverse).sorted(compare(x)).collect(Collectors.toList())) {
                 ret.add(a.base.id);
                 ret.add(x.base.id);
                 int arrival = turn + sendTurn[a.base.id][t.base.id];
@@ -109,7 +110,7 @@ public class Test {
         }
 
         aly.stream().filter(x -> used[x.base.id] == false && x.nextTroops > 1000).forEach(a -> {
-            Stream.of(bases).filter(x -> turn + sendTurn[a.base.id][x.base.id] < x.reverse || (a != x && x.owner == 0 && x.troops < 300)).min(compare(a)).ifPresent(t -> {
+            Stream.of(bases).filter(x -> sendTurn[a.base.id][x.base.id] < x.reverse || (a != x && x.owner == 0 && x.troops < 300)).min(compare(a)).ifPresent(t -> {
                 ret.add(a.base.id);
                 ret.add(t.base.id);
                 int arrival = turn + sendTurn[a.base.id][t.base.id];
