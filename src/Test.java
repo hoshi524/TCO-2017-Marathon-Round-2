@@ -70,7 +70,25 @@ public class Test {
             }
         }
 
-        List<Integer> ret = new ArrayList<>();
+        class Result {
+            List<Integer> res = new ArrayList<>();
+
+            void sendTroops(Base a, Base b) {
+                res.add(a.base.id);
+                res.add(b.base.id);
+                int arrival = turn + sendTurn[a.base.id][b.base.id];
+                if (arrival < MAX_TURN) arrivalTroops[b.base.id][arrival] += Math.ceil((a.troops / 2) / 1.20);
+            }
+
+            int[] to() {
+                int[] x = new int[res.size()];
+                for (int i = 0; i < x.length; ++i) {
+                    x[i] = res.get(i);
+                }
+                return x;
+            }
+        }
+        Result result = new Result();
 
         boolean used[] = new boolean[bases.length];
         while (true) {
@@ -95,10 +113,7 @@ public class Test {
             Base x = t;
             int s = 0;
             for (Base a : v.stream().filter(a -> sendTurn[a.base.id][x.base.id] < x.reverse).sorted(compare(x)).collect(Collectors.toList())) {
-                ret.add(a.base.id);
-                ret.add(x.base.id);
-                int arrival = turn + sendTurn[a.base.id][t.base.id];
-                if (arrival < MAX_TURN) arrivalTroops[t.base.id][arrival] += Math.ceil((a.troops / 2) / 1.20);
+                result.sendTroops(a, x);
                 used[a.base.id] = true;
                 s += a.base.growth;
                 if (x.base.growth + x.troops / 100 < s) {
@@ -106,16 +121,12 @@ public class Test {
                 }
             }
         }
-
         aly.stream().filter(x -> used[x.base.id] == false && x.nextTroops > 1000).forEach(a -> {
             Stream.of(bases).filter(x -> sendTurn[a.base.id][x.base.id] < x.reverse || (a != x && x.owner == 0 && x.troops < 300)).min(compare(a)).ifPresent(x -> {
-                ret.add(a.base.id);
-                ret.add(x.base.id);
-                int arrival = turn + sendTurn[a.base.id][x.base.id];
-                if (arrival < MAX_TURN) arrivalTroops[x.base.id][arrival] += Math.ceil((a.troops / 2) / 1.20);
+                result.sendTroops(a, x);
             });
         });
-        return to(ret);
+        return result.to();
     }
 
     Comparator<Base> compare(Base x) {
@@ -135,14 +146,6 @@ public class Test {
         int x = a - c;
         int y = b - d;
         return Math.sqrt(x * x + y * y);
-    }
-
-    int[] to(List<Integer> list) {
-        int[] x = new int[list.size()];
-        for (int i = 0; i < x.length; ++i) {
-            x[i] = list.get(i);
-        }
-        return x;
     }
 
     private void debug(Object... o) {
