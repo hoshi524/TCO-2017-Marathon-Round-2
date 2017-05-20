@@ -81,7 +81,7 @@ public class Test {
             for (Base x : opp) {
                 int s = 0;
                 for (Base a : aly.stream().filter(a -> a.troops < 100 && used[a.base.id] == false).sorted(compare(x)).collect(Collectors.toList())) {
-                    if (sendTurn[x.base.id][a.base.id] > 20 + 10 * (5 - players)) break;
+                    if (sendTurn[x.base.id][a.base.id] > 15 + 10 * (5 - players)) break;
                     s += a.base.growth;
                     if (x.base.growth + x.troops / 100 < s) {
                         if (value > sendTurn[x.base.id][a.base.id]) {

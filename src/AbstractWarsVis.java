@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Stream;
 
 class Troop {
     int owner;
@@ -669,16 +670,31 @@ public class AbstractWarsVis {
                 }
             }
         } else {
-            final int testcase = 1000;
-            double sum = 0;
-            long seed = 1;
-            for (long end = seed + testcase; seed < end; ++seed) {
-                double score = new AbstractWarsVis().runTest(seed, false, new Player1());
-                if (score < 0) throw new RuntimeException("seed : " + seed);
-                sum += score;
-                debug("seed", seed, "score", score, "avg", sum / (seed - end + testcase + 1));
+            class State {
+                double sum1 = 0;
+                double sum2 = 0;
             }
+            State state = new State();
+            ExecutorService es = Executors.newFixedThreadPool(4);
+            for (long s = 1; s < 1000; ++s) {
+                final long seed = s;
+                es.submit(() -> {
+                    double score1 = new AbstractWarsVis().runTest(seed, false, new Player1());
+                    double score2 = new AbstractWarsVis().runTest(seed, false, new Player2());
+                    synchronized (state) {
+                        double max = Math.max(score1, score2);
+                        state.sum1 += score1 / max;
+                        state.sum2 += score2 / max;
+                        debug("seed", seed, F(score1), F(score2), F(state.sum1), F(state.sum2));
+                    }
+                });
+            }
+            es.shutdown();
         }
+    }
+
+    static String F(double x) {
+        return String.format("%7.2f", x);
     }
 
     private static void debug(Object... o) {
