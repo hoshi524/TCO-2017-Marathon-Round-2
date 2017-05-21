@@ -107,7 +107,7 @@ public class Test {
                 for (Base a : v.stream().filter(a -> sendTurn[a.base.id][x.base.id] < x.reverse).sorted(compare(x)).collect(Collectors.toList())) {
                     if (sendTurn[x.base.id][a.base.id] > 20 + 10 * (5 - players)) break;
                     s += a.base.growth;
-                    if (x.base.growth + x.troops / 100 < s) {
+                    if (x.troops == 0 || x.base.growth + x.troops / 100 < s) {
                         if (value > sendTurn[x.base.id][a.base.id]) {
                             value = sendTurn[x.base.id][a.base.id];
                             t = x;

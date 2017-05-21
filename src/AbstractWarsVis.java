@@ -671,7 +671,7 @@ public class AbstractWarsVis {
             }
         } else if (false) {
             for (long seed = 500; seed < 1000; ++seed) {
-                new AbstractWarsVis().runTest(seed, true, new Player2());
+                new AbstractWarsVis().runTest(seed, true, new Player2(), 500);
             }
         } else {
             class State {
