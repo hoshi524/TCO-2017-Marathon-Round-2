@@ -11,6 +11,7 @@ public class Test {
     private int[][] arrival;
     private int[] arrivalAll;
     private Base[][] bases;
+    private List<Troops> troops;
     private int speed, turn;
     private int[][] sendTurn;
 
@@ -40,6 +41,7 @@ public class Test {
         }
         arrival = new int[bs][MAX_TURN];
         arrivalAll = new int[bs];
+        troops = new ArrayList<>();
         return 0;
     }
 
@@ -52,6 +54,70 @@ public class Test {
             arrivalAll[i] -= arrival[i][turn];
         }
         if (turn < 2) return new int[0];
+        {
+            for (Troops z : troops) {
+                z.to = -2;
+            }
+            boolean used[] = new boolean[bases.length];
+            for (int i = 0; i < troops_.length / 4; ++i) {
+                int owner = troops_[i * 4 + 0];
+                int size = troops_[i * 4 + 1];
+                int x = troops_[i * 4 + 2];
+                int y = troops_[i * 4 + 3];
+                if (owner == 0) continue;
+                int count = 0;
+                int id = 0;
+                for (int j = 0; j < bases.length; ++j) {
+                    Base b = this.bases[turn - 1][j];
+                    if (used[j]) continue;
+                    if (b.owner == owner && b.troops / 2 == size && distance(x, y, b.base.x, b.base.y) <= speed) {
+                        ++count;
+                        id = j;
+                    }
+                }
+                Troops t = null;
+                if (count == 1) {
+                    t = new Troops();
+                    t.owner = owner;
+                    t.size = size;
+                    t.x = x;
+                    t.y = y;
+                    t.in = turn - 1;
+                    t.from = id;
+                    used[id] = true;
+                    troops.add(t);
+                } else {
+                    count = 0;
+                    for (Troops z : troops) {
+                        if (z.owner == owner && z.size == size && distance(x, y, z.x, z.y) <= speed + 1) {
+                            ++count;
+                            t = z;
+                        }
+                    }
+                    if (count != 1) continue;
+                    t.x = x;
+                    t.y = y;
+                }
+                t.to = -1;
+                count = 0;
+                id = 0;
+                for (int j = 0; j < bases.length; ++j) {
+                    Base b = this.bases[t.in][j];
+                    double part = (double) (turn - t.in) / sendTurn[t.from][j];
+                    if (b.owner != t.owner
+                            && t.x == (int) (bases[t.from].base.x + (b.base.x - bases[t.from].base.x) * part)
+                            && t.y == (int) (bases[t.from].base.y + (b.base.y - bases[t.from].base.y) * part)
+                            ) {
+                        ++count;
+                        id = j;
+                    }
+                }
+                if (count != 1) continue;
+                t.to = id;
+                t.time = t.in + sendTurn[t.from][t.to];
+            }
+            troops = troops.stream().filter(x -> x.to != -2).collect(Collectors.toList());
+        }
 
         List<Base> aly = Stream.of(bases).filter(x -> x.owner == 0 && x.troops >= 2).collect(Collectors.toList());
         List<Base> opp = Stream.of(bases).filter(x -> x.owner != 0 || x.troops == 0).collect(Collectors.toList());
@@ -72,7 +138,6 @@ public class Test {
                 }
             }
         }
-
 
         boolean used[] = new boolean[bases.length];
         class Result {
@@ -127,7 +192,13 @@ public class Test {
                 }
             }
         }
-        aly.stream().filter(x -> used[x.base.id] == false && x.nextTroops > 1000).forEach(a -> {
+
+        int[] attackTime = new int[bases.length];
+        Arrays.fill(attackTime, Integer.MAX_VALUE);
+        for (Troops t : troops) {
+            if (t.to > -1 && attackTime[bases[t.to].base.id] > t.time) attackTime[bases[t.to].base.id] = t.time;
+        }
+        aly.stream().filter(x -> used[x.base.id] == false && x.nextTroops > 1000 && (attackTime[x.base.id] > turn + 15 || x.nextTroops > 1100)).forEach(a -> {
             Stream.of(bases).filter(x -> sendTurn[a.base.id][x.base.id] < x.reverse || (a != x && x.owner == 0 && x.troops + arrivalAll[x.base.id] < 300)).min(compare(a)).ifPresent(x -> {
                 result.sendTroops(a, x);
             });
@@ -146,6 +217,10 @@ public class Test {
     class Base {
         BaseBase base;
         int owner, troops, nextTroops, reverse;
+    }
+
+    class Troops {
+        int owner, size, x, y, from, in, to, time = Integer.MAX_VALUE;
     }
 
     double distance(int a, int b, int c, int d) {
