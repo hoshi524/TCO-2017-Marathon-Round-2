@@ -122,7 +122,7 @@ public class Test {
             for (Base a : v.stream().filter(a -> sendTurn[a.base.id][x.base.id] < x.reverse).sorted(compare(x)).collect(Collectors.toList())) {
                 result.sendTroops(a, x);
                 s += a.base.growth;
-                if (x.base.growth + x.troops / 100 < s) {
+                if (x.troops == 0 || x.base.growth + x.troops / 100 < s) {
                     break;
                 }
             }
