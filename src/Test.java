@@ -167,7 +167,7 @@ public class Test {
             Base t = null;
             int value = Integer.MAX_VALUE;
             List<Base> v = aly.stream().filter(a -> a.troops < 100 && used[a.base.id] == false).collect(Collectors.toList());
-            for (Base x : opp) {
+            for (Base x : opp.stream().filter(x -> x.troops < 200).collect(Collectors.toList())) {
                 int s = 0;
                 for (Base a : v.stream().filter(a -> sendTurn[a.base.id][x.base.id] < x.reverse).sorted(compare(x)).collect(Collectors.toList())) {
                     if (sendTurn[x.base.id][a.base.id] > 20 + 10 * (5 - players)) break;
@@ -199,7 +199,7 @@ public class Test {
             if (t.to > -1 && attackTime[bases[t.to].base.id] > t.time) attackTime[bases[t.to].base.id] = t.time;
         }
         aly.stream().filter(x -> used[x.base.id] == false && x.nextTroops > 1000 && (attackTime[x.base.id] > turn + 15 || x.nextTroops > 1100)).forEach(a -> {
-            Stream.of(bases).filter(x -> sendTurn[a.base.id][x.base.id] < x.reverse || (a != x && x.owner == 0 && x.troops + arrivalAll[x.base.id] < 300)).min(compare(a)).ifPresent(x -> {
+            Stream.of(bases).filter(x -> sendTurn[a.base.id][x.base.id] < x.reverse || (x.owner == 0 && x.troops + arrivalAll[x.base.id] < 300)).min(compare(a)).ifPresent(x -> {
                 result.sendTroops(a, x);
             });
         });

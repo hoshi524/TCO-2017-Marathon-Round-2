@@ -655,17 +655,13 @@ public class AbstractWarsVis {
             for (long seed = 1; seed < 1000; ++seed) {
                 double score1 = new AbstractWarsVis().runTest(seed, false, new Player1());
                 double score2 = new AbstractWarsVis().runTest(seed, false, new Player2());
-                if ((score1 > 1000 && score2 < 500) || (score1 < 500 && score2 > 1000)) {
-                    debug(score1, score2);
+                if ((score1 > 1000 && score2 < 500)) {
+                    debug(F(score1), F(score2));
                     long s = seed;
                     ExecutorService es = Executors.newFixedThreadPool(2);
-                    es.submit(() -> {
-                        new AbstractWarsVis().runTest(s, true, new Player1(), 500);
-                    });
-                    es.submit(() -> {
-                        new AbstractWarsVis().runTest(s, true, new Player2(), 500);
-                    });
-                    es.shutdown();
+                    es.submit(() -> new AbstractWarsVis().runTest(s, true, new Player1(), 500));
+                    es.submit(() -> new AbstractWarsVis().runTest(s, true, new Player2(), 500));
+                    // es.shutdown();
                     es.awaitTermination(1, TimeUnit.DAYS);
                 }
             }
@@ -683,18 +679,23 @@ public class AbstractWarsVis {
             for (long s = 1; s < 1000; ++s) {
                 final long seed = s;
                 es.submit(() -> {
+                    TestCase tc = new TestCase(seed);
                     double score1 = new AbstractWarsVis().runTest(seed, false, new Player1());
                     double score2 = new AbstractWarsVis().runTest(seed, false, new Player2());
                     synchronized (state) {
                         double max = Math.max(score1, score2);
                         state.sum1 += score1 / max;
                         state.sum2 += score2 / max;
-                        debug("seed", seed, F(score1), F(score2), F(state.sum1), F(state.sum2));
+                        debug("seed", seed, I(tc.NOpp), I(tc.B), I(tc.speed), F(score1), F(score2), F(state.sum1), F(state.sum2));
                     }
                 });
             }
             es.shutdown();
         }
+    }
+
+    static String I(int x) {
+        return String.format("%3d", x);
     }
 
     static String F(double x) {
