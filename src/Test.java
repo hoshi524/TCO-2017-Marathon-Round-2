@@ -3,6 +3,7 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Test {
@@ -55,9 +56,7 @@ public class Test {
         }
         if (turn < 2) return new int[0];
         {
-            for (Troops z : troops) {
-                z.to = -2;
-            }
+            troops.stream().forEach(x -> x.to = -2);
             boolean used[] = new boolean[bases.length];
             for (int i = 0; i < troops_.length / 4; ++i) {
                 int owner = troops_[i * 4 + 0];
@@ -123,9 +122,7 @@ public class Test {
         List<Base> opp = Stream.of(bases).filter(x -> x.owner != 0 || x.troops == 0).collect(Collectors.toList());
         int players = (int) Stream.of(bases).mapToInt(x -> x.owner).distinct().count();
 
-        for (Base b : aly) {
-            b.nextTroops = b.troops + b.base.growth + b.troops / 100 + arrival[b.base.id][turn + 1];
-        }
+        aly.stream().forEach(x -> x.nextTroops = x.troops + x.base.growth + x.troops / 100 + arrival[x.base.id][turn + 1]);
         for (Base b : opp) {
             b.reverse = Integer.MAX_VALUE;
             int troops = b.troops;

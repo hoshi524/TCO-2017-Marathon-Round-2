@@ -319,7 +319,7 @@ class World {
                 t.targetId = to;
                 t.depTime = curStep;
                 int moveT = (int) Math.ceil(Math.sqrt(Math.pow(t.x - tc.bases[to].x, 2) +
-                        Math.pow(t.y - tc.bases[to].y, 2)) / tc.speed);
+                    Math.pow(t.y - tc.bases[to].y, 2)) / tc.speed);
                 t.arrivalTime = t.depTime + moveT;
                 troops.add(t);
 
@@ -485,7 +485,7 @@ interface Player {
 }
 
 class Player1 implements Player {
-    AbstractWars x = new AbstractWars();
+    Test x = new Test();
 
     @Override
     public int init(int[] baseLocations, int speed_) {
@@ -499,7 +499,7 @@ class Player1 implements Player {
 }
 
 class Player2 implements Player {
-    Test x = new Test();
+    ABC x = new ABC();
 
     @Override
     public int init(int[] baseLocations, int speed_) {
@@ -574,8 +574,8 @@ public class AbstractWarsVis {
                 drawer.pauseMode = true;
             }
         }
-
-        for (int step = 0; step < SIMULATION_TIME; step++) {
+        int step;
+        for (step = 0; step < SIMULATION_TIME; step++) {
             world.startNewStep();
             world.updateTroopArrivals();
 
@@ -646,7 +646,7 @@ public class AbstractWarsVis {
                 break;
             }
         }
-        // debug("score", world.playerScore, "players", tc.NOpp + 1, "bases", tc.bases.length, "speed", tc.speed, "powers", tc.powers);
+        debug("score", world.playerScore, "step", step, "players", tc.NOpp + 1, "bases", tc.bases.length, "speed", tc.speed, "powers", tc.powers);
         return world.playerScore;
     }
 
@@ -665,10 +665,10 @@ public class AbstractWarsVis {
                     es.awaitTermination(1, TimeUnit.DAYS);
                 }
             }
-        } else if (false) {
-            for (long seed = 500; seed < 1000; ++seed) {
-                new AbstractWarsVis().runTest(seed, true, new Player2(), 500);
-            }
+        } else if (true) {
+            long seed = 6;
+            new AbstractWarsVis().runTest(seed, false, new Player1());
+            new AbstractWarsVis().runTest(seed, false, new Player2());
         } else {
             class State {
                 double sum1 = 0;
