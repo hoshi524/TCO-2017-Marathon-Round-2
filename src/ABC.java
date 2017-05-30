@@ -151,8 +151,7 @@ public class ABC {
                 res.add(a.base.id);
                 res.add(b.base.id);
                 int v = turn + sendTurn[a.base.id][b.base.id];
-                int h = a.troops / 2;
-                int troops = (int) Math.ceil(h / 1.20);
+                int troops = (int) Math.ceil((a.troops / 2) / 1.20);
                 if (v < MAX_TURN) arrival[b.base.id][v] += troops;
                 arrivalAll[b.base.id] += troops;
                 used[a.base.id] = true;
@@ -169,26 +168,17 @@ public class ABC {
         Result result = new Result();
         if (plan == null) {
             plan = new Plan(bases).HC();
-            debug(plan.turn, plan.score, IntStream.of(plan.ok).filter(x -> x == 0).count(), plan.ok);
+            // debug(plan.score, plan.get);
         }
-        for (int i = 0; i < B; ++i) {
-            if (plan.ok[i] > 0 && plan.ok[i] != Integer.MAX_VALUE && plan.ok[i] <= turn && (bases[i].owner != 0 || bases[i].troops == 0)) {
-                debug(turn, i, bases[i].owner, bases[i].troops, plan.ok[i]);
-                throw new RuntimeException();
-            }
-        }
-        if (plan.turn > turn) {
-            if (false) {
-                int x = 10;
-                debug(turn, x, bases[x].owner, bases[x].troops, bases[x].base.growth, arrival[x][turn], arrival[x][turn + 1], arrival[x][turn + 2], arrival[x][turn + 3]);
-            }
+        if (plan.score > 0) {
             for (int i = 0; i < B; ++i) {
+                if (plan.get[i] < turn && (bases[i].owner != 0 || bases[i].troops == 0)) {
+                    debug(plan.get[i], i, "owner", bases[i].owner, "troops", bases[i].troops, "growth", bases[i].base.growth, "arrival", arrival[i][turn], arrival[i][turn + 1]);
+                    throw new RuntimeException();
+                }
                 if (bases[i].owner == 0 && bases[i].troops > 1) {
-                    for (int j : plan.target[i]) {
-                        if (plan.ok[j] == Integer.MAX_VALUE) break;
-                        if (plan.ok[j] >= turn + sendTurn[i][j] && i != j) {
-                            if (j == 88)
-                                debug(turn, "from", i, "to", j, plan.ok[j], "attack", bases[i].troops / 2, "troops", bases[j].troops, "sendTurn", sendTurn[i][j], "growth", bases[j].base.growth);
+                    for (int j : plan.target) {
+                        if (bases[j].owner != 0 && plan.get[j] >= turn + sendTurn[i][j]) {
                             result.sendTroops(bases[i], bases[j]);
                             break;
                         }
@@ -197,7 +187,6 @@ public class ABC {
             }
             return result.to();
         }
-        if (true) return result.to();
 
         while (true) {
             Base t = null;
@@ -270,17 +259,12 @@ public class ABC {
         Base[] bases;
 
         class State {
-            int score, turn, target[][] = new int[B][B], ok[] = new int[B];
+            int score, target[] = new int[B], get[] = new int[B];
 
             State init() {
-                turn = 0;
                 score = Integer.MIN_VALUE;
                 for (int i = 0; i < B; ++i) {
-                    for (int j = 0; j < B; ++j) {
-                        target[i][j] = j;
-                    }
-                    int t = i;
-                    target[t] = sort(target[t], (a, b) -> sendTurn[t][a] - sendTurn[t][b]);
+                    target[i] = i;
                 }
                 return this;
             }
@@ -289,10 +273,9 @@ public class ABC {
                 for (int i = 0; i < 10; ++i) {
                     int a = random.nextInt(B);
                     int b = random.nextInt(B);
-                    int c = random.nextInt(B);
-                    int t = target[a][b];
-                    target[a][b] = target[a][c];
-                    target[a][c] = t;
+                    int t = target[a];
+                    target[a] = target[b];
+                    target[b] = t;
                 }
                 return this;
             }
@@ -300,91 +283,58 @@ public class ABC {
             State copy() {
                 State x = new State();
                 x.score = score;
-                x.turn = turn;
-                for (int i = 0; i < B; ++i) {
-                    System.arraycopy(target[i], 0, x.target[i], 0, B);
-                }
-                System.arraycopy(ok, 0, x.ok, 0, B);
+                System.arraycopy(target, 0, x.target, 0, B);
+                System.arraycopy(get, 0, x.get, 0, B);
                 return x;
             }
 
             State simulate() {
-                Arrays.fill(ok, -1);
-                int troop[] = new int[B];
+                Arrays.fill(get, 0);
+                int owner[] = new int[B];
                 int growth[] = new int[B];
-                int arrival[][] = new int[B][T + 1000];
-                int b = 0;
                 for (int i = 0; i < B; ++i) {
-                    if (bases[i].owner == 0) {
-                        troop[i] = +bases[i].troops;
-                        ++b;
-                    } else {
-                        troop[i] = -bases[i].troops;
-                        ok[i] = Integer.MAX_VALUE;
-                    }
+                    owner[i] = bases[i].owner;
                     growth[i] = bases[i].base.growth;
                 }
-                turn = 2;
+                int used[] = new int[B];
                 score = 0;
-                while (b < B && turn < T) {
-                    for (int i = 0; i < B; ++i) {
-                        if (troop[i] >= 2) {
-                            int j = 0;
-                            while (j + 1 < B && turn + sendTurn[i][target[i][j]] >= ok[target[i][j]]) ++j;
-                            int x = target[i][j];
-                            arrival[x][turn + sendTurn[i][x]] += Math.ceil((troop[i] / 2) / 1.2);
-                            troop[i] -= troop[i] / 2;
-                            ++score;
-                        }
-                    }
-                    for (int i = 0; i < B; ++i) {
-                        int prev = troop[i];
-                        if (troop[i] > 0) {
-                            troop[i] += growth[i];
-                        } else {
-                            troop[i] -= growth[i];
-                        }
-                        troop[i] += troop[i] / 100 + arrival[i][turn];
-                        if (prev < 0 && troop[i] >= 0) ++b;
-                        if (ok[i] != -1 && troop[i] < 1) {
-                            int x = troop[i];
-                            for (int j = turn + 1; j < T; ++j) {
-                                x -= growth[i];
-                                x += x / 100 + arrival[i][j];
-                                if (x > 1) {
-                                    if (ok[i] > j) ok[i] = j;
-                                    break;
-                                }
+                for (int i = 0; i < B; ++i) {
+                    int c = target[i], t = 0;
+                    if (owner[c] == 0) continue;
+                    int arrival[] = new int[2000];
+                    int troop = bases[c].troops;
+                    for (; t < T && troop > -1 && troop < 500; ++t) {
+                        for (int j = 0; j < B; ++j) {
+                            if (owner[j] == 0) {
+                                arrival[t + used[j] + sendTurn[c][j]] += growth[j];
                             }
                         }
+                        troop += growth[c];
+                        troop += troop / 100;
+                        troop -= arrival[t];
                     }
-                    ++turn;
+                    if (t == T || troop > -1) {
+                        score = Integer.MIN_VALUE + score;
+                        return this;
+                    }
+                    owner[c] = 0;
+                    get[c] = t;
+                    for (int j = 0; j < B; ++j) {
+                        if (used[j] < t - sendTurn[c][j]) used[j] = t - sendTurn[c][j];
+                    }
+                    score += 0x1000 - t * growth[c];
                 }
-                score += B * (T - turn);
                 return this;
             }
         }
 
         Plan(Base[] bases) {
             this.bases = bases;
-            {
-                int[] buf = new int[0xff];
-                for (int i = 0; i < buf.length; ++i) {
-                    buf[i] = 0xff - i;
-                }
-                buf = sort(buf, (a, b) -> a - b);
-                for (int i = 0; i + 1 < buf.length; ++i) {
-                    if (buf[i] > buf[i + 1]) {
-                        debug(buf);
-                        throw new RuntimeException();
-                    }
-                }
-            }
         }
 
         State HC() {
             State best = new State().init();
-            for (int i = 0; i < 0xff; ++i) {
+            for (int i = 0; i < 1; ++i) {
                 State tmp = best.copy().shuffle().simulate();
                 if (best.score <= tmp.score) best = tmp;
             }
@@ -419,24 +369,6 @@ public class ABC {
         long nextLong() {
             return ((long) nextInt() << 32) | (long) nextInt();
         }
-    }
-
-    int[] sort(int x[], Comparator<Integer> comparator) {
-        int l[] = new int[x.length], li = 0;
-        int r[] = new int[x.length], ri = 0;
-        int a[] = new int[x.length];
-        int p = x[0];
-        for (int i = 1; i < x.length; ++i) {
-            if (comparator.compare(p, x[i]) > 0) {
-                l[li++] = x[i];
-            } else {
-                r[ri++] = x[i];
-            }
-        }
-        a[li] = p;
-        if (li > 0) System.arraycopy(sort(Arrays.copyOf(l, li), comparator), 0, a, 0, li);
-        if (ri > 0) System.arraycopy(sort(Arrays.copyOf(r, ri), comparator), 0, a, li + 1, ri);
-        return a;
     }
 
     private void debug(Object... o) {

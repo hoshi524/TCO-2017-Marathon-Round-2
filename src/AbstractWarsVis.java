@@ -646,7 +646,7 @@ public class AbstractWarsVis {
                 break;
             }
         }
-        debug("score", world.playerScore, "step", step, "players", tc.NOpp + 1, "bases", tc.bases.length, "speed", tc.speed, "powers", tc.powers);
+        // debug("score", world.playerScore, "step", step, "players", tc.NOpp + 1, "bases", tc.bases.length, "speed", tc.speed, "powers", tc.powers);
         return world.playerScore;
     }
 
@@ -666,9 +666,7 @@ public class AbstractWarsVis {
                 }
             }
         } else if (true) {
-            long seed = 6;
-            new AbstractWarsVis().runTest(seed, false, new Player1());
-            new AbstractWarsVis().runTest(seed, false, new Player2());
+            debug(new AbstractWarsVis().runTest(32, false, new Player2()));
         } else {
             class State {
                 double sum1 = 0;
