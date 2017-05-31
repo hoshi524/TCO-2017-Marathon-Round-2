@@ -651,7 +651,35 @@ public class AbstractWarsVis {
     }
 
     public static void main(String[] args) throws Exception {
-        if (false) {
+        if (true) {
+            class Testcase {
+                long seed;
+                double score;
+
+                Testcase(long seed, double score) {
+                    this.seed = seed;
+                    this.score = score;
+                }
+            }
+            Testcase testcase[] = {
+                new Testcase(1453334016, 1961.3358),
+                new Testcase(1018908964, 1990.3012),
+                new Testcase(1574739300, 1950.7512),
+                new Testcase(1642930399, 1953.3945),
+                new Testcase(1551214407, 1991.9930),
+                new Testcase(1617491727, 1933.1967),
+                new Testcase(1391307472, 1979.8078),
+                new Testcase(1962574307, 1984.2784),
+                new Testcase(1901362454, 1969.4729),
+            };
+            for (Testcase t : testcase) {
+                debug(
+                    F(t.score),
+                    F(new AbstractWarsVis().runTest(t.seed, false, new Player1())),
+                    F(new AbstractWarsVis().runTest(t.seed, false, new Player2()))
+                );
+            }
+        } else if (false) {
             for (long seed = 1; seed < 10000; ++seed) {
                 double score1 = new AbstractWarsVis().runTest(seed, false, new Player1());
                 double score2 = new AbstractWarsVis().runTest(seed, false, new Player2());

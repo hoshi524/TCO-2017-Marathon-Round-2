@@ -255,7 +255,7 @@ public class ABC {
     }
 
     class Plan {
-        private final static int T = 500;
+        private final static int T = 300;
         Base[] bases;
 
         class State {
@@ -270,7 +270,7 @@ public class ABC {
             }
 
             State shuffle() {
-                for (int i = 0; i < 10; ++i) {
+                for (int i = 0; i < 3; ++i) {
                     int a = random.nextInt(B);
                     int b = random.nextInt(B);
                     int t = target[a];
