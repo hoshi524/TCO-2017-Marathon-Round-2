@@ -652,7 +652,7 @@ public class AbstractWarsVis {
 
     public static void main(String[] args) throws Exception {
         if (false) {
-            for (long seed = 1; seed < 1000; ++seed) {
+            for (long seed = 1; seed < 10000; ++seed) {
                 double score1 = new AbstractWarsVis().runTest(seed, false, new Player1());
                 double score2 = new AbstractWarsVis().runTest(seed, false, new Player2());
                 if ((score1 > 1000 && score2 < 500)) {
@@ -665,7 +665,7 @@ public class AbstractWarsVis {
                     es.awaitTermination(1, TimeUnit.DAYS);
                 }
             }
-        } else if (true) {
+        } else if (false) {
             debug(new AbstractWarsVis().runTest(32, false, new Player2()));
         } else {
             class State {
@@ -674,7 +674,7 @@ public class AbstractWarsVis {
             }
             State state = new State();
             ExecutorService es = Executors.newFixedThreadPool(4);
-            for (long s = 1; s < 1000; ++s) {
+            for (long s = 1; s < 10000; ++s) {
                 final long seed = s;
                 es.submit(() -> {
                     TestCase tc = new TestCase(seed);

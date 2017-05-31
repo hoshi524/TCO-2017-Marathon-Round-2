@@ -178,7 +178,7 @@ public class ABC {
                 }
                 if (bases[i].owner == 0 && bases[i].troops > 1) {
                     for (int j : plan.target) {
-                        if (bases[j].owner != 0 && plan.get[j] >= turn + sendTurn[i][j]) {
+                        if (!(bases[j].owner == 0 && bases[j].troops > 0) && plan.get[j] >= turn + sendTurn[i][j]) {
                             result.sendTroops(bases[i], bases[j]);
                             break;
                         }
@@ -255,7 +255,7 @@ public class ABC {
     }
 
     class Plan {
-        private final static int T = 200;
+        private final static int T = 500;
         Base[] bases;
 
         class State {
@@ -318,7 +318,7 @@ public class ABC {
                         return this;
                     }
                     owner[c] = 0;
-                    get[c] = t;
+                    get[c] = t + 1;
                     for (int j = 0; j < B; ++j) {
                         if (used[j] < t - sendTurn[c][j]) used[j] = t - sendTurn[c][j];
                     }
@@ -334,7 +334,7 @@ public class ABC {
 
         State HC() {
             State best = new State().init();
-            for (int i = 0; i < 1; ++i) {
+            for (int i = 0; i < 0xfff; ++i) {
                 State tmp = best.copy().shuffle().simulate();
                 if (best.score <= tmp.score) best = tmp;
             }
