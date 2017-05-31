@@ -320,7 +320,7 @@ public class ABC {
                     owner[c] = 0;
                     get[c] = t + 1;
                     for (int j = 0; j < B; ++j) {
-                        if (used[j] < t - sendTurn[c][j]) used[j] = t - sendTurn[c][j];
+                        if (owner[j] == 0 && used[j] < t - sendTurn[c][j]) used[j] = t - sendTurn[c][j];
                     }
                     score += 0x1000 - t * growth[c];
                 }
